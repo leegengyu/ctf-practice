@@ -4,6 +4,7 @@ This repository documents what I have learnt from exploring CTF challenges.
 # Google CTF > Web > bnv
 Link: https://bnv.web.ctfcompetition.com/  
 There is not much to see in this enterprise-ready™ web application.  
+Reference: https://www.youtube.com/watch?v=rcgq8LyNDaQ
 
 * This is what greets us when we load the page initially:
 ![](/screenshots/google-web-bnv/initialPage.jpg)
@@ -39,3 +40,28 @@ There is not much to see in this enterprise-ready™ web application.
 ![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLDTDFlag.jpg)
 * Note: We would normally expect the flag to be in `/root/flag` when chasing down VulnHub machines, but it isn't the case here, because from the `/etc/passwd` file, we notice that there is no `root` user!
 * Our flag is `CTF{0x1033_75008_1004x0}`.
+
+# Google CTF > Reversing > Malvertising
+Link: https://malvertising.web.ctfcompetition.com/  
+Unravel the layers of malvertising to uncover the Flag  
+Reference:
+1. https://balsn.tw/ctf_writeup/20190622-googlectfquals/#malvertising
+2. https://www.hackiit.cf/write-up-google-ctf-malvertising/
+3. https://github.com/EmpireCTF/empirectf/tree/master/writeups/2019-06-22-Google-CTF-Quals#140-reversing--malvertising
+
+* Clicking into the link loads a screenshot of a YouTube site, with the top of the page standing out - "Your advertisement here".
+![](/screenshots/google-reversing-maladvertising/initialLoad.jpg)
+* Clicking on anywhere within the HTML element of the `iframe` results in the page being redirected to google.com.
+* Opening up the page source, we see `ads/ad.html` that is the source of the iframe:
+![](/screenshots/google-reversing-maladvertising/initialLoadPageSource.jpg)
+* Clicking on it directly will not show us the code - we have to go to the Developer Tools console to check it out:
+![](/screenshots/google-reversing-maladvertising/adHTML.jpg)
+* We see the script that results in the loading of google.com upon clicking.
+* There is a bunch of iframe links at the bottom, which do not seem to serve any purpose.
+* Lastly, I found `/ads/src/metrics.js`, which did not make any sense to me even though I had pretty-printed it using Chrome's tool.
+* So I found out that the file contents are not only minimised, but also completely obfuscated. At the end of the file, there is a chunk of code that is noteworthy:
+![](/screenshots/google-reversing-maladvertising/metricsJSEnd.jpg)
+* Converting some of the hexadecimal content on line 469 to ASCII leads us to the discovery of `android`.
+* We have to insert `android` into the `User-Agent` parameter before the next file is revealed to us.
+* At this point in time I am pretty much lost so I will be doing up some reading before making another attempt here.
+* To-be-continued...
