@@ -20,4 +20,13 @@ There is not much to see in this enterprise-ready™ web application.
 ![](/screenshots/google-web-bnv/burpInterceptModifiedRequest.jpg)
 * Removing the body content altogether gives us the response `{"ValueSearch": "No JSON object could be decoded"}`:
 ![](/screenshots/google-web-bnv/burpInterceptModifiedRequestEmpty.jpg)
+**Background**: The information below are taken from an [article](https://blog.netspi.com/playing-content-type-xxe-json-endpoints/) on NetSPI, titled `Playing with Content-Type – XXE on JSON Endpoints`.
+* Most common data formats for web services are XML and JSON.
+* While a web service may be programmed to use just either XML or JSON, the server may accept data formats that the developers did not anticipate.
+* Thus, JSON endpoints may be vulnerable to **XML External Entity attacks (XXE)**, an attack that exploits weakly configured XML parser settings on the server.
+**Back to the challenge**:
+* When we modify only the `Content-type` to `application/xml` instead of `application/json`, we get the response that "Start tag expected, '<' not found, line 1, column 1". This tells us that the **server accepts the XML content type as well!**
+![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXML.jpg)
+* Next, we modify our body content to one that is formatted in XML, in addition to having the content-type set to XML, and it tells us that "Validation failed: no DTD found !". I followed the article's advice to add the `<root>` element as well, but it gives the same response.
+![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLFormattedRequest.jpg)
 * To-be-continued...
