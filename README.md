@@ -29,4 +29,13 @@ There is not much to see in this enterprise-ready™ web application.
 ![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXML.jpg)
 * Next, we modify our body content to one that is formatted in XML, in addition to having the content-type set to XML, and it tells us that "Validation failed: no DTD found !". I followed the article's advice to add the `<root>` element as well, but it gives the same response.
 ![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLFormattedRequest.jpg)
-* To-be-continued...
+* DTD stands for Document Type Declaration. Next, we attempt to brute-force for a local DTD file on the target host, with reference to [this article](https://mohemiv.com/all/exploiting-xxe-with-local-dtd-files/). The response that we get is "failed to load external entity". (Note that we did not change any of the `file://`.
+![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLDTD.jpg)
+* We make another attempt to change the first entity file to `file:///usr/share/yelp/dtd/docbookx.dtd`, which was seen in the site. While it was still an unsuccessful attempt, we get a different error message: "No declaration for element message". This perhaps meant that the external entity could now be loaded, but there is another XML formatting error that we have to take a look at.
+![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLDTD2.jpg)
+* The main change which we made to solve this error was to remove the "element message" altogether. Next, we modified the second ENTITY line. Besides these 2 changes, redundant code was removed to make it neater. And then we have our `/etc/passwd` file displayed!
+![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLDTDSuccess.jpg)
+* Instead of displaying the `/etc/passwd` file, we want to get the flag, so we change it to `/flag` instead:
+![](/screenshots/google-web-bnv/burpInterceptModifiedRequestXMLDTDFlag.jpg)
+* Note: We would normally expect the flag to be in `/root/flag` when chasing down VulnHub machines, but it isn't the case here, because from the `/etc/passwd` file, we notice that there is no `root` user!
+* Our flag is `CTF{0x1033_75008_1004x0}`.
