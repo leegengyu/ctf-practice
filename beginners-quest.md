@@ -1,3 +1,6 @@
+# Overview
+* Link to site: https://capturetheflag.withgoogle.com/#beginners/
+
 # [easiest - task: misc] Enter Space-Time Coordinates
 * There is a file for us to [download](https://storage.googleapis.com/gctf-2019-attachments/00c2a73eec8abb4afb9c3ef3a161b64b451446910535bfc0cc81c2b04aa132ed) - `00c2a73eec8abb4afb9c3ef3a161b64b451446910535bfc0cc81c2b04aa132ed.zip`. The file name is static - but looks like it could be a hash to me. Ran a check on `hash-identifier` which said that it could be a `SHA-256` or `Haval-256` hash. Used an online cracker to see if we could find anything but nothing turned up.
 * *Digression: First time that I see a hash named Haval so decided to run a search on what it is - a one-way hashing algorithm designed in 1992 and apparently no successful attacks have been reported on it so far. Thus, it can apparently serve as a "drop-in" replacement of MD5.*
@@ -9,9 +12,10 @@
 * I tried a few random ones but the output was simply that we arrived at somewhere where the flag is not at.
 * I looked into using `strings`, and managed to find the flag with `strings rand2 | grep flag`!
 ![](/screenshots/google-beginner-space-time/flag.jpg)
+* Our flag is `CTF{welcome_to_googlectf}`.
 * That was really quick - indeed it was befitting of the `easiest` label.
 
-# [easy - task: networking] Satellite
+# [easier - task: networking] Satellite
 * There is a file for us to [download](https://storage.googleapis.com/gctf-2019-attachments/768be4f10429f613eb27fa3e3937fe21c7581bdca97d6909e070ab6f7dbf2fbf) - `768be4f10429f613eb27fa3e3937fe21c7581bdca97d6909e070ab6f7dbf2fbf.zip`.
 * Within the zip file we find 2 files - `README.pdf` and `init_sat`.
 * In the README file, it tells us that we should "load init_sat on our terminal".
