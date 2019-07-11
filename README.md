@@ -58,7 +58,7 @@ Reference:
 ![](/screenshots/google-reversing-maladvertising/adHTML.jpg)
 * We see the script that results in the loading of google.com upon clicking.
 * There is a bunch of iframe links at the bottom, which do not seem to serve any purpose.
-* Lastly, I found `/ads/src/metrics.js`, which did not make any sense to me even though I had pretty-printed it using Chrome's tool.
+* Lastly, I found `/ads/src/metrics.js`, which I did not quite know how to make sense of anything in it even though I had pretty-printed it using Chrome's tool.
 * So I found out that the file contents are not only minimised, but also completely obfuscated. At the end of the file, there is a chunk of code that is noteworthy:
 ![](/screenshots/google-reversing-maladvertising/metricsJSEnd.jpg)
 * Converting some of the hexadecimal content on line 469 to ASCII leads us to the discovery of `android`.
