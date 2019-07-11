@@ -73,4 +73,15 @@
 * `file unknown` tells us that it is a PNG image data.
 * Opening up the file tells us the flag `CTF{congratsyoufoundmycreds}`!
 * **Learning point**: `xdg-open unknown` allows us to open the image file straight-up without having to open up `Files`, then clicking our way to the file.
-![](/screenshots/google-beginner-home-computer/grepCredentialsTxt.jpg)
+![](/screenshots/google-beginner-home-computer/flag.jpg)
+
+# [easier - task: web] Government Agriculture Network
+* Link: https://govagriculture.web.ctfcompetition.com/
+* Opening up the page shows us a textfield right at the top that allows us to enter some text, press `Submit`, and we get a message that "Your post was submitted for review. Administator will take a look shortly."
+* On the top-right-hand corner, we see `Admin` which directs us to `/admin`, which really actually only directs us back to the original link itself. Hmm.
+* At the bottom of the page we see an apparent post titled "New acquisition on our farms" and dated "May 15, 2019" with two images - one of a yellow calliflower amongst green leaves and a lady eating a calliflower with a glass of wine in her hand, and a plate of calliflowers before her.
+* I opened up BurpSuite, and intercepted the POST request made when the `Submit` button was hit when we "attempt to create a new post". Only `postContents=` was in the body content - no cookies, whatsoever.
+* Next, I intercepted the GET request for `/admin`, and saw that the response was a `303 See Other`. The next request served up was a GET request for the main page, i.e. `/`.
+* I read from this [article](https://airbrake.io/blog/http-errors/303-see-other) that the `303` code was typically provided in response to a `POST`, `PUT`, or `DELETE` HTTP method request. However, that was not the case here.
+* I tried to access `/see-other`, `/seeother`, `/administrator` and `/login`, but they all turned up nothing.
+* To-be-continued...
