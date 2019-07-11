@@ -43,3 +43,34 @@
 ![](/screenshots/google-beginner-satellite/flag.jpg)
 * Our flag is `CTF{4efcc72090af28fd33a2118985541f92e793477f}`, found in the originally censored password field (*I find it interesting how we are able to see the password in plaintext in the packet while it is censored when we executed it in the terminal - hmm?*).
 * This sounds silly, but I had always assumed that local executables had everything running locally with no connection to the Internet at all.
+
+# [easier - task: forensics] Home Computer
+* Reference link: https://ctftime.org/writeup/15941
+* There is a file for us to [download](https://storage.googleapis.com/gctf-2019-attachments/86863db246859897dda6ba3a4f5801de9109d63c9b6b69810ec4182bf44c9b75) - `86863db246859897dda6ba3a4f5801de9109d63c9b6b69810ec4182bf44c9b75.zip`.
+* Within the zip file we find 2 files - `family.ntfs` and `note.txt`.
+* In the note file, we find that it is just a recommendation to rename the .ntfs file to .dmg if the user is on MacOS.
+* Running `file family.ntfs` tells us that it is a DOS/MBR boot sector.
+* Note: NTFS stands for New Technology File System, and is used by Windows.
+* Since it is a file system and not a directory, we are not able to directly change our directory into it (i.e. cannot use `cd`).
+* "In order to actually access the contents of the filesystem, we need to mount it to our own system at a specified mount point. Only after mounting the file system, can we actually access it as if it were a directory."
+* Heading to my `/mnt` directory, I find that it is empty. I create a directory with `mkdir forensics` just for this challenge's purpose.
+* The `forensics` directory is known as our mounting point. Next, we will mount the NTFS file system to the mounting point using `mount -t ntfs /root/Downloads/family.ntfs /mnt/forensics`. A successful execution of the command gives no output.
+* Heading into the `forensics` directory, we see a list of directories and files:
+![](/screenshots/google-beginner-home-computer/fileSystemContents.jpg)
+* I navigated into `Users`, then `Family` (because that was the only directory). There were several directories in there - `Desktop`, `Documents`, `Downloads`, `Pictures` and `Videos`. I started exploring the directories from the top of the list.
+* `Desktop` had nothing interesting within, but `Documents` had 3 files - `credentials.txt`, `document.pdf` and `preview.pdf`.
+* `credentials.txt` tells us that pictures of the user's credentials are kept in extended attributes.
+* Searching about `extended attributes NTFS` tells us that they are stored on the file system as alternate data streams "whose name is the unprefixed name of the attribute, and whose contents is the value of the attribute". They appear to be difficult to find as well.
+* Run `fls -Fr family.ntfs | grep credentials.txt` to see what turns up besides the file which we looked into just now.
+![](/screenshots/google-beginner-home-computer/grepCredentialsTxt.jpg)
+* Note: `fls` lists file and directory names in a disk image. `-F` displays file (non-directory) entires only, and also lists the full path of the file that turns up in the result. `-r` searches directories recursively.
+* We can see that there is another file `Users/Family/Documents/credentials.txt:FILE0`, which is the extended attributes file. *Though I think that it might be possible that the extended attribute file could do as a stand-alone file with just the name `FILE0`?* That way it would make it alot harder to find it.
+* The identifier for this newly discovered file is `13288-128-4`.
+* Next, we will use `icat`, which outputs the contents of a file based on its inode number.
+* Just as a try-out first, running `icat family.ntfs 13288-128-2` shows us the one-liner content in `credentials.txt` as expected.
+* Running `icat family.ntfs 13288-128-4` displays a whole bunch of data that we cannot understand, so let us redirect the contents of it to a new file with `> unknown` attached to the `icat` command.
+* **Learning point**: We can run `icat family.ntfs 13288-128-4 | file -` to find out what kind of file it is without having to re-direct the output of `icat` to a new file first, then running `file`. The only unusual part here that I learnt about is `file -`, where the command `file` reads the parameter from `stdin`. I had always thought that we needed to supply the file name to `file` for the command to work - *perhaps a temporary file is created from `stdin` in its underlying implementation?*.
+* `file unknown` tells us that it is a PNG image data.
+* Opening up the file tells us the flag `CTF{congratsyoufoundmycreds}`!
+* **Learning point**: `xdg-open unknown` allows us to open the image file straight-up without having to open up `Files`, then clicking our way to the file.
+![](/screenshots/google-beginner-home-computer/grepCredentialsTxt.jpg)
