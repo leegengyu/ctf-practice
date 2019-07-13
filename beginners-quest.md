@@ -103,7 +103,7 @@
 * I had definitely learnt a lot from this challenge - I never knew something like `webhook.site` existed, which would allow us to do many things (one of which is stealing cookies). I knew the theory of it but having to do the practical was definitely enriching.
 
 # [easier - task: pwn] Stop Gan
-* Reference link:
+* Reference links:
 1. https://amar-laksh.github.io/2019/06/29/Google-CTF-Writeups-Part-1.html#stopgan
 2. https://github.com/Dvd848/CTFs/blob/master/2019_GoogleCTF_BQ/STOP_GAN.md
 * There is a file for us to [download](https://storage.googleapis.com/gctf-2019-attachments/4a8becb637ed2b45e247d482ea9df123eb01115fc33583c2fa0e4a69b760af4a) - `4a8becb637ed2b45e247d482ea9df123eb01115fc33583c2fa0e4a69b760af4a.zip`.
@@ -114,7 +114,7 @@
 ![](/screenshots/google-beginner-bof/checksec.jpg)
 * **Learning point**: I never saw RELRO before, but found out that it stands for Relocation Read-Only, and is a method to harden ELF binaries in Linux.
 * `console.c` contains C language code. I compiled the code using `gcc console.c -o console -static -s` as mentioned within the file, and ran `./console`. However, when I typed in `run`, I got the error that "/usr/bin/qemu-mipsel-static: not found".
-* Note: It turns out that if we were to overflow `./console`, we would have gotten the message `***CRASH***could not open flag`, which would then prompt one to connect to the official server.
+* Note: It turns out that we should have gotten the message `***CRASH***could not open flag` when we overflowed `./console`. After testing it locally, we would then try it out on the official server.
 * Note2: I learnt that `bof` is a MIPS binary that needed to be executed with the help of an emulator - qemu - which is why we see that file name in the error that we got.
 * We are also given `buffer-overflow.ctfcompetition.com 1337`, where I used `nc` to connect to. I found out that when we were connected, the program that was running was the same as `./console`. This time, I managed to type in `run` successfully. Next, I entered some random input, which gave us "Cauliflower systems never crash >>".
 ![](/screenshots/google-beginner-bof/noCrash.jpg)
@@ -130,4 +130,7 @@
 * **Learning point**: `nm` is used to list symbols from object files.
 * Note: Using `strings bof | grep flag` gives us a couple more results than `nm`. Though `local_flag` is found within the output, we would not have been sure if this name refers to a function, if we were to run this command alone.
 * Since we would never be able to get to the interesting function by ordinary means, we would have to redirect the return address to it.
+* One of the reference articles recommended us to use `Ghidra` to decompile `bof`. After clicking Download [here](https://ghidra-sre.org/), I extracted the downloaded zip file, before running `ghidraRun`.
+* Wait for awhile for the application to start up, then create a new project, then select `CodeBrowser` under Tool Chest. `CodeBrowser` is found on the top-left-hand corner of the window, in the form of a green dragon button.
+* Next, click on Edit > Import file and select `bof`.
 * To-be-continued...
